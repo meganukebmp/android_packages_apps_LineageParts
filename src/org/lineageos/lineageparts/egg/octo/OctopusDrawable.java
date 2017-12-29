@@ -40,7 +40,6 @@ import org.lineageos.lineageparts.R;
 
 public class OctopusDrawable extends Drawable {
     private static float BASE_SCALE = 100f;
-    public static boolean PATH_DEBUG = false;
 
     private static int BODY_COLOR   = 0xFFE0F2F1;
     private static int ARM_COLOR    = 0xFF212121;
@@ -238,12 +237,6 @@ public class OctopusDrawable extends Drawable {
                 mArms[i].draw(canvas, mPaint);
             }
 
-            if (PATH_DEBUG) {
-                for (Arm arm : mArms) {
-                    arm.drawDebug(canvas);
-                }
-            }
-
         }
         canvas.restore();
     }
@@ -383,54 +376,6 @@ public class OctopusDrawable extends Drawable {
         public void draw(@NonNull Canvas canvas, Paint pt) {
             final Path p = getPath();
             TaperedPathStroke.drawPath(canvas, p, max, min, pt);
-        }
-
-        private final Paint dpt = new Paint();
-        public void drawDebug(Canvas canvas) {
-            dpt.setStyle(Paint.Style.STROKE);
-            dpt.setStrokeWidth(0.75f);
-            dpt.setStrokeCap(Paint.Cap.ROUND);
-
-            dpt.setAntiAlias(true);
-            dpt.setColor(0xFF336699);
-
-            final Path path = getPath();
-            canvas.drawPath(path, dpt);
-
-            dpt.setColor(0xFFFFFF00);
-
-            dpt.setPathEffect(new DashPathEffect(new float[] {2f, 2f}, 0f));
-
-            canvas.drawLines(new float[] {
-                    link1.end().x,   link1.end().y,
-                    link2.start().x, link2.start().y,
-
-                    link2.end().x,   link2.end().y,
-                    link3.start().x, link3.start().y,
-            }, dpt);
-            dpt.setPathEffect(null);
-
-            dpt.setColor(0xFF00CCFF);
-
-            canvas.drawLines(new float[] {
-                    link1.start().x, link1.start().y,
-                    link1.end().x,   link1.end().y,
-
-                    link2.start().x, link2.start().y,
-                    link2.end().x,   link2.end().y,
-
-                    link3.start().x, link3.start().y,
-                    link3.end().x,   link3.end().y,
-            }, dpt);
-
-            dpt.setColor(0xFFCCEEFF);
-            canvas.drawCircle(link2.start().x, link2.start().y, 2f, dpt);
-            canvas.drawCircle(link3.start().x, link3.start().y, 2f, dpt);
-
-            dpt.setStyle(Paint.Style.FILL_AND_STROKE);
-            canvas.drawCircle(link1.start().x, link1.start().y, 2f, dpt);
-            canvas.drawCircle(link2.mid().x,   link2.mid().y,   2f, dpt);
-            canvas.drawCircle(link3.end().x,   link3.end().y,   2f, dpt);
         }
 
     }
