@@ -644,5 +644,5 @@
     <string name="touchscreen_gesture_action_next_track">Skip to the next music track</string>
 
     <!-- Egg: Title for the easter egg activity -->
-    <string name="egg_title">Egg</string>
+    <string name="egg_title">Easter Egg</string>
 </resources>

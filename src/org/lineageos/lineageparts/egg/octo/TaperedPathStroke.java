@@ -43,7 +43,7 @@ public class TaperedPathStroke {
         final float len = pm.getLength();
         float t = 0;
         boolean last = false;
-        while (true) {
+        while (!last) {
             if (t >= len) {
                 t = len;
                 last = true;
@@ -54,7 +54,6 @@ public class TaperedPathStroke {
             c.drawCircle(pos[0], pos[1], r, pt);
             // walk forward 1/4 radius, not too small though
             t += Math.max(r * 0.25f, sMinStepPx);
-            if (last) break;
         }
     }
 }

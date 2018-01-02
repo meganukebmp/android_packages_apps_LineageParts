@@ -39,31 +39,31 @@ import android.support.animation.FloatValueHolder;
 import org.lineageos.lineageparts.R;
 
 public class OctopusDrawable extends Drawable {
-    private static float BASE_SCALE = 100f;
+    private static final float BASE_SCALE = 100f;
 
-    private static int BODY_COLOR   = 0xFFE0F2F1;
-    private static int ARM_COLOR    = 0xFF212121;
-    private static int LINE_COLOR   = 0xFF212121;
+    private static final int BODY_COLOR   = 0xFFE0F2F1;
+    private static final int ARM_COLOR    = 0xFF212121;
+    private static final int LINE_COLOR   = 0xFF212121;
 
-    private static int[] FRONT_ARMS = {0, 1, 2, 3};
+    private static final int[] FRONT_ARMS = {0, 1, 2, 3};
     // use a bunch of presets for X to get the arms looking just right
-    private static float[][] ARM_XPOS_FRONT = {
-                                    {0, -5f, -10f},
-                                    {1f, -1f, -4f},
-                                    {-1f, 1f, 4f},
-                                    {0, 5f, 10f}};
+    private static final float[][] ARM_XPOS_FRONT = {
+                                        {0, -5f, -10f},
+                                        {1f, -1f, -4f},
+                                        {-1f, 1f, 4f},
+                                        {0, 5f, 10f}};
 
     private Paint mPaint = new Paint();
     private Arm[] mArms = new Arm[4]; // 8
-    final PointF point = new PointF();
+    final PointF mCenter = new PointF();
     private int mSizePx = 100;
     final Matrix M = new Matrix();
     final Matrix M_inv = new Matrix();
     private TimeAnimator mDriftAnimation;
-    private float[] ptmp = new float[2];
-    private float[] scaledBounds = new float[2];
+    private float[] mPtmp = new float[2];
+    private float[] mScaledBounds = new float[2];
 
-    private Drawable EYE_LOGO;
+    private Drawable mEyeLogo;
 
     public static float randfrange(float a, float b) {
         return (float) (Math.random() * (b - a) + a);
@@ -77,7 +77,6 @@ public class OctopusDrawable extends Drawable {
         setSizePx((int)(100 * dp));
         mPaint.setAntiAlias(true);
         for (int i = 0; i < mArms.length; i++) {
-            final float bias = (float)i / (mArms.length - 1) - 0.5f;
             mArms[i] = new Arm(
                     0, 0, // arm will be repositioned on moveTo
                     ARM_XPOS_FRONT[i][0], 15f,
@@ -86,7 +85,7 @@ public class OctopusDrawable extends Drawable {
                     14f, 2f);
         }
 
-        EYE_LOGO = context.getResources().getDrawable(R.drawable.logo_lineage);
+        mEyeLogo = context.getResources().getDrawable(R.drawable.logo_lineage);
     }
 
     public void setSizePx(int size) {
@@ -101,12 +100,13 @@ public class OctopusDrawable extends Drawable {
         if (mDriftAnimation == null) {
             mDriftAnimation = new TimeAnimator();
             mDriftAnimation.setTimeListener(new TimeAnimator.TimeListener() {
-                float MAX_VY = 35f;
-                float JUMP_VY = -100f;
-                float MAX_VX = 15f;
+                static final float MAX_VY = 35f;
+                static final float JUMP_VY = -100f;
+                static final float MAX_VX = 15f;
                 private float ax = 0f, ay = 30f;
                 private float vx, vy;
                 long nextjump = 0;
+
                 @Override
                 public void onTimeUpdate(TimeAnimator timeAnimator, long t, long dt) {
                     float t_sec = 0.001f * t;
@@ -122,14 +122,14 @@ public class OctopusDrawable extends Drawable {
                     vy = clamp(vy + dt_sec * ay, -100 * MAX_VY, MAX_VY);
 
                     // oob check
-                    if (point.y - BASE_SCALE / 2 > scaledBounds[1]) {
+                    if (mCenter.y - BASE_SCALE / 2 > mScaledBounds[1]) {
                         vy = JUMP_VY;
-                    } else if (point.y + BASE_SCALE < 0) {
+                    } else if (mCenter.y + BASE_SCALE < 0) {
                         vy = MAX_VY;
                     }
 
-                    point.x = clamp(point.x + dt_sec * vx, 0, scaledBounds[0]);
-                    point.y = point.y + dt_sec * vy;
+                    mCenter.x = clamp(mCenter.x + dt_sec * vx, 0, mScaledBounds[0]);
+                    mCenter.y = mCenter.y + dt_sec * vy;
 
                     repositionArms();
                }
@@ -151,24 +151,24 @@ public class OctopusDrawable extends Drawable {
         moveTo(w/2, h / 2);
         lockArms(false);
 
-        scaledBounds[0] = w;
-        scaledBounds[1] = h;
-        M_inv.mapPoints(scaledBounds);
+        mScaledBounds[0] = w;
+        mScaledBounds[1] = h;
+        M_inv.mapPoints(mScaledBounds);
     }
 
     // real pixel coordinates
     public void moveTo(float x, float y) {
-        point.x = x;
-        point.y = y;
-        mapPointF(M_inv, point);
+        mCenter.x = x;
+        mCenter.y = y;
+        mapPointF(M_inv, mCenter);
         repositionArms();
     }
 
     public boolean hitTest(float x, float y) {
-        ptmp[0] = x;
-        ptmp[1] = y;
-        M_inv.mapPoints(ptmp);
-        return Math.hypot(ptmp[0] - point.x, ptmp[1] - point.y) < BASE_SCALE/2;
+        mPtmp[0] = x;
+        mPtmp[1] = y;
+        M_inv.mapPoints(mPtmp);
+        return Math.hypot(mPtmp[0] - mCenter.x, mPtmp[1] - mCenter.y) < BASE_SCALE/2;
     }
 
     private void lockArms(boolean l) {
@@ -176,11 +176,11 @@ public class OctopusDrawable extends Drawable {
             arm.setLocked(l);
         }
     }
+
     private void repositionArms() {
         for (int i = 0; i < mArms.length; i++) {
             final float bias = (float)i / (mArms.length - 1) - 0.5f;
-            mArms[i].setAnchor(
-                    point.x + bias * 30f, point.y + 26f);
+            mArms[i].setAnchor(mCenter.x + bias * 30f, mCenter.y + 26f);
         }
         invalidateSelf();
     }
@@ -194,39 +194,40 @@ public class OctopusDrawable extends Drawable {
             // draw the bottom part of the squid, really only the corner rounding is different.
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(BODY_COLOR);
-            canvas.drawRoundRect(point.x - 23f, point.y - 10f, point.x + 23f, point.y + 25f,
+            canvas.drawRoundRect(mCenter.x - 23f, mCenter.y - 10f, mCenter.x + 23f, mCenter.y + 25f,
                                     10f, 10f, mPaint);
             // draw the body outline
             mPaint.setColor(LINE_COLOR);
             mPaint.setStyle(Paint.Style.STROKE);
             mPaint.setStrokeWidth(4f);
-            canvas.drawRoundRect(point.x - 23f, point.y - 10f, point.x + 23f, point.y + 25f,
+            canvas.drawRoundRect(mCenter.x - 23f, mCenter.y - 10f, mCenter.x + 23f, mCenter.y + 25f,
                                     10f, 10f, mPaint);
 
             // draw the top part of our squid then clip out the bottom part.
             canvas.save();
             {
-                canvas.clipOutRect(point.x - 28f, point.y + 5f, point.x + 28f, point.y + 30f);
+                canvas.clipOutRect(mCenter.x - 28f, mCenter.y + 5f,
+                                   mCenter.x + 28f, mCenter.y + 30f);
 
                 mPaint.setStyle(Paint.Style.FILL);
                 mPaint.setColor(BODY_COLOR);
-                canvas.drawRoundRect(point.x - 23f, point.y - 21f, point.x + 23f, point.y + 25f,
-                                        16f, 15f, mPaint);
+                canvas.drawRoundRect(mCenter.x - 23f, mCenter.y - 21f,
+                                     mCenter.x + 23f, mCenter.y + 25f, 16f, 15f, mPaint);
 
                 mPaint.setColor(LINE_COLOR);
                 mPaint.setStyle(Paint.Style.STROKE);
                 mPaint.setStrokeWidth(4f);
-                canvas.drawRoundRect(point.x - 23f, point.y - 21f, point.x + 23f, point.y + 25f,
-                                        16f, 15f, mPaint);
+                canvas.drawRoundRect(mCenter.x - 23f, mCenter.y - 21f,
+                                     mCenter.x + 23f, mCenter.y + 25f, 16f, 15f, mPaint);
             }
             canvas.restore();
 
             // draw our logo drawable and translate it to the squid's position. Aspect 2:1
             canvas.save();
             {
-                canvas.translate(point.x - 23f, point.y - 2f);
-                EYE_LOGO.setBounds(0, 0, 46, 23);
-                EYE_LOGO.draw(canvas);
+                canvas.translate(mCenter.x - 23f, mCenter.y - 2f);
+                mEyeLogo.setBounds(0, 0, 46, 23);
+                mEyeLogo.draw(canvas);
             }
             canvas.restore();
 
@@ -241,13 +242,13 @@ public class OctopusDrawable extends Drawable {
         canvas.restore();
     }
 
+    // Unused. We must implement because inherited drawable class expects it
     @Override
     public void setAlpha(int i) {
     }
 
     @Override
     public void setColorFilter(@Nullable ColorFilter colorFilter) {
-
     }
 
     @Override
@@ -259,6 +260,7 @@ public class OctopusDrawable extends Drawable {
         p.moveTo(pt.x, pt.y);
         return p;
     }
+
     static Path pathQuadTo(Path p, PointF p1, PointF p2) {
         p.quadTo(p1.x, p1.y, p2.x, p2.y);
         return p;
@@ -273,8 +275,8 @@ public class OctopusDrawable extends Drawable {
         point.y = p[1];
     }
 
-    private class Link  // he come to town
-            implements DynamicAnimation.OnAnimationUpdateListener {
+    // he come to town
+    private class Link implements DynamicAnimation.OnAnimationUpdateListener {
         final FloatValueHolder[] coords = new FloatValueHolder[2];
         final SpringAnimation[] anims = new SpringAnimation[coords.length];
         private float dx, dy;
@@ -298,20 +300,25 @@ public class OctopusDrawable extends Drawable {
                 anims[i].addUpdateListener(this);
             }
         }
+
         public void setLocked(boolean locked) {
             this.locked = locked;
         }
+
         public PointF start() {
             return new PointF(coords[0].getValue(), coords[1].getValue());
         }
+
         public PointF end() {
             return new PointF(coords[0].getValue() + dx, coords[1].getValue() + dy);
         }
+
         public PointF mid() {
             return new PointF(
                     0.5f * dx + (coords[0].getValue()),
                     0.5f * dy + (coords[1].getValue()));
         }
+
         public void animateTo(PointF target) {
             if (locked) {
                 setStart(target.x, target.y);
@@ -320,6 +327,7 @@ public class OctopusDrawable extends Drawable {
                 anims[1].animateToFinalPosition(target.y);
             }
         }
+
         @Override
         public void onAnimationUpdate(DynamicAnimation dynamicAnimation, float v, float v1) {
             if (next != null) {

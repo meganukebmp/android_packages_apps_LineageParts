@@ -31,7 +31,6 @@ public class Ocquarium extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        ImageView mImageView;
 
         super.onCreate(savedInstanceState);
         final float dp = getResources().getDisplayMetrics().density;
@@ -43,16 +42,16 @@ public class Ocquarium extends Activity {
         bg.setAlpha(0f);
         bg.animate().setStartDelay(500).setDuration(5000).alpha(1f).start();
 
-        mImageView = new ImageView(this);
-        bg.addView(mImageView, new FrameLayout.LayoutParams(
+        ImageView imageView = new ImageView(this);
+        bg.addView(imageView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
         final OctopusDrawable octo = new OctopusDrawable(getApplicationContext());
         octo.setSizePx((int) (OctopusDrawable.randfrange(40f, 180f) * dp));
-        mImageView.setImageDrawable(octo);
+        imageView.setImageDrawable(octo);
         octo.startDrift();
 
-        mImageView.setOnTouchListener(new View.OnTouchListener() {
+        imageView.setOnTouchListener(new View.OnTouchListener() {
             boolean touching;
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
